@@ -1,7 +1,9 @@
-import json
-from imu_receiver import read_imu_data
+# bin/imu_interface.py  --- shim
+import sys
+from pathlib import Path
 
+# 加入 include/user 到搜尋路徑
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "include" / "user"))
 
-def get_imu_data():
-    imu_data = read_imu_data()
-    return json.dumps(imu_data)  # 以 JSON 形式返回数据
+# 匯入正式版本
+from imu_interface import *

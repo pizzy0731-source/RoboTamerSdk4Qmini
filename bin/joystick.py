@@ -1,150 +1,129 @@
+import os
 import pygame
-import struct
-import time
 import json
 
+# ===== 你這把預設 mapping（可用環境變數覆蓋） =====
+IDX_A      = int(os.getenv("BTN_A",      "0"))
+IDX_B      = int(os.getenv("BTN_B",      "1"))
+IDX_X      = int(os.getenv("BTN_X",      "2"))
+IDX_Y      = int(os.getenv("BTN_Y",      "3"))
+IDX_L1     = int(os.getenv("BTN_L1",     "4"))
+IDX_R1     = int(os.getenv("BTN_R1",     "5"))
+IDX_SELECT = int(os.getenv("BTN_SELECT", "6"))
+IDX_START  = int(os.getenv("BTN_START",  "7"))
+IDX_L2     = int(os.getenv("BTN_L2",     "8"))
+IDX_R2     = int(os.getenv("BTN_R2",     "9"))
+
+AX_LX = int(os.getenv("AX_LX", "0"))
+AX_LY = int(os.getenv("AX_LY", "1"))
+AX_RX = int(os.getenv("AX_RX", "3"))   # 你的備忘錄：右搖桿左右=3
+AX_RY = int(os.getenv("AX_RY", "4"))   # 你的備忘錄：右搖桿上下=4
+AX_DX = int(os.getenv("AX_DPAD_X", "6"))  # D-pad 左右在 axis 6
+AX_DY = int(os.getenv("AX_DPAD_Y", "7"))  # D-pad 上下在 axis 7
+DPAD_THRESH = float(os.getenv("DPAD_THRESH", "0.5"))
+
 class JoyStick:
-    #按键定义
-    LaxiX = 0.0    #左摇杆X轴，axis[0]
-    LaxiY = 0.0    #左摇杆Y轴，axis[1]
-    RaxiX = 0.0    #右摇杆X轴，axis[2]
-    RaxiY = 0.0    #右摇杆Y轴，axis[3]
-    hatX = 0       #方向键X轴，hat[0]
-    hatY = 0       #方向键Y轴，hat[1]
-    butA = 0       #A键，but[0]
-    butB = 0       #B键，but[1]
-    butX = 0       #X键，but[3]
-    butY = 0       #Y键，but[4]
-    L1 = 0         #L1键，but[6]
-    R1 = 0         #R1键，but[7]
-    L2 = 0         #L2键，but[8]
-    R2 = 0         #R2键，but[9]
-    SELECT = 0     #SELECT键，but[10]
-    START = 0      #START键，but[11]
-    
     def __init__(self):
         pygame.init()
         pygame.joystick.init()
-        
-    def initjoystick(self):
-        pygame.init()
-        pygame.joystick.init()
         self.joystick = pygame.joystick.Joystick(0)
         self.joystick.init()
+
+        # 狀態變數（與舊版欄位同名）
+        self.LaxiX = 0.0
+        self.LaxiY = 0.0
+        self.RaxiX = 0.0
+        self.RaxiY = 0.0
+        self.hatX  = 0
+        self.hatY  = 0
+        self.butA = self.butB = self.butX = self.butY = 0
+        self.L1 = self.R1 = self.L2 = self.R2 = 0
+        self.SELECT = self.START = 0
+
+    # 兼容舊介面
+    def initjoystick(self):
+        pass
+
+    # 安全讀取工具
+    def _btn(self, idx):
+        n = self.joystick.get_numbuttons()
+        return self.joystick.get_button(idx) if 0 <= idx < n else 0
+
+    def _axis(self, idx):
+        n = self.joystick.get_numaxes()
+        return self.joystick.get_axis(idx) if 0 <= idx < n else 0.0
 
     def getjoystickstates(self):
-        self.joystick = pygame.joystick.Joystick(0)
-        self.joystick.init()
-        
-        for event in pygame.event.get():  # User did something
-            if event.type == pygame.JOYAXISMOTION:
-                self.LaxiX = self.joystick.get_axis(0)
-                self.LaxiY = self.joystick.get_axis(1)
-                self.RaxiX = self.joystick.get_axis(2)
-                self.RaxiY = self.joystick.get_axis(3)
+        # 讓 pygame 更新裝置狀態
+        pygame.event.pump()
 
-            if event.type == pygame.JOYHATMOTION:
-                hat = self.joystick.get_hat(0)
-                self.hatX = hat[0]
-                self.hatY = hat[1]
+        # 軸
+        self.LaxiX = self._axis(AX_LX)
+        self.LaxiY = self._axis(AX_LY)
+        self.RaxiX = self._axis(AX_RX)
+        self.RaxiY = self._axis(AX_RY)
 
-            if event.type == pygame.JOYBUTTONDOWN:
-                self.butA = self.joystick.get_button(0)
-                self.butB = self.joystick.get_button(1)
-                self.butX = self.joystick.get_button(3)
-                self.butY = self.joystick.get_button(4)
-                self.L1 = self.joystick.get_button(6)
-                self.R1 = self.joystick.get_button(7)
-                self.L2 = self.joystick.get_button(8)
-                self.R2 = self.joystick.get_button(9)
-                self.SELECT = self.joystick.get_button(10)
-                self.START = self.joystick.get_button(11)
+        # D-pad：若手把沒有 hat，改用 axis 6/7 合成
+        if self.joystick.get_numhats() > 0:
+            hx, hy = self.joystick.get_hat(0)
+            self.hatX, self.hatY = int(hx), int(hy)
+        else:
+            dx = self._axis(AX_DX)
+            dy = self._axis(AX_DY)
+            self.hatX = -1 if dx < -DPAD_THRESH else (1 if dx > DPAD_THRESH else 0)
+            self.hatY = -1 if dy < -DPAD_THRESH else (1 if dy > DPAD_THRESH else 0)
 
-            if event.type == pygame.JOYBUTTONUP:
-                self.butA = self.joystick.get_button(0)
-                self.butB = self.joystick.get_button(1)
-                self.butX = self.joystick.get_button(3)
-                self.butY = self.joystick.get_button(4)
-                self.L1 = self.joystick.get_button(6)
-                self.R1 = self.joystick.get_button(7)
-                self.L2 = self.joystick.get_button(8)
-                self.R2 = self.joystick.get_button(9)
-                self.SELECT = self.joystick.get_button(10)
-                self.START = self.joystick.get_button(11)
-        
+        # 按鍵（採用你的手把索引；不存在就回傳 0）
+        self.butA = self._btn(IDX_A)
+        self.butB = self._btn(IDX_B)
+        self.butX = self._btn(IDX_X)
+        self.butY = self._btn(IDX_Y)
+        self.L1   = self._btn(IDX_L1)
+        self.R1   = self._btn(IDX_R1)
+        self.L2   = self._btn(IDX_L2)
+        self.R2   = self._btn(IDX_R2)
+        self.SELECT = self._btn(IDX_SELECT)
+        self.START  = self._btn(IDX_START)
+
     def display(self):
         print('================')
-        print('Axies:')
-        print('LaxiX: {}'.format(self.LaxiX))
-        print('LaxiY: {}'.format(self.LaxiY))
-        print('RaxiX: {}'.format(self.RaxiX))
-        print('RaxiY: {}'.format(self.RaxiY))
+        print('Axes:')
+        print(f'LaxiX: {self.LaxiX}')
+        print(f'LaxiY: {self.LaxiY}')
+        print(f'RaxiX: {self.RaxiX}')
+        print(f'RaxiY: {self.RaxiY}')
         print('----------------')
         print('Hat:')
-        print('hatX: {}'.format(self.hatX))
-        print('hatY: {}'.format(self.hatY))
+        print(f'hatX: {self.hatX}')
+        print(f'hatY: {self.hatY}')
         print('----------------')
         print('button:')
-        print('butA: {}'.format(self.butA))
-        print('butB: {}'.format(self.butB))
-        print('butX: {}'.format(self.butX))
-        print('butY: {}'.format(self.butY))
-        print('L1: {}'.format(self.L1))
-        print('R1: {}'.format(self.R1))
-        print('L2: {}'.format(self.L2))
-        print('R2: {}'.format(self.R2))
-        print('SELECT: {}'.format(self.SELECT))
-        print('START: {}'.format(self.START))
+        print(f'butA: {self.butA}')
+        print(f'butB: {self.butB}')
+        print(f'butX: {self.butX}')
+        print(f'butY: {self.butY}')
+        print(f'L1: {self.L1}')
+        print(f'R1: {self.R1}')
+        print(f'L2: {self.L2}')
+        print(f'R2: {self.R2}')
+        print(f'SELECT: {self.SELECT}')
+        print(f'START: {self.START}')
         print('================')
-                
+
 joy = JoyStick()
 
 def init_joystick():
-    global joy
-    joy.initjoystick()
+    # 與舊 API 相容（主程式會呼叫）
+    pass
 
 def read_joystick():
-    global joy
     joy.getjoystickstates()
-    
     result = {
-        "LaxiX": 0.,
-        "LaxiY": 0.,
-        "RaxiX": 0.,
-        "RaxiY": 0.,
-        "hatX": 0,
-        "hatY": 0,
-        "butA": 0,
-        "butB": 0,
-        "butX": 0,
-        "butY": 0,
-        "L1": 0,
-        "R1": 0,
-        "L2": 0,
-        "R2": 0,
-        "SELECT": 0,
-        "START": 0,
+        "LaxiX": joy.LaxiX, "LaxiY": joy.LaxiY,
+        "RaxiX": joy.RaxiX, "RaxiY": joy.RaxiY,
+        "hatX": joy.hatX,   "hatY": joy.hatY,
+        "butA": joy.butA, "butB": joy.butB, "butX": joy.butX, "butY": joy.butY,
+        "L1": joy.L1, "R1": joy.R1, "L2": joy.L2, "R2": joy.R2,
+        "SELECT": joy.SELECT, "START": joy.START,
     }
-
-    result["LaxiX"] = joy.LaxiX
-    result["LaxiY"] = joy.LaxiY
-    result["RaxiX"] = joy.RaxiX
-    result["RaxiY"] = joy.RaxiY
-    
-    result["hatX"] = joy.hatX
-    result["hatY"] = joy.hatY
-    
-    result["butA"] = joy.butA
-    result["butB"] = joy.butB
-    result["butX"] = joy.butX
-    result["butY"] = joy.butY
-    
-    result["L1"] = joy.L1
-    result["R1"] = joy.R1
-    result["L2"] = joy.L2
-    result["R2"] = joy.R2
-    
-    result["SELECT"] = joy.SELECT
-    result["START"] = joy.START
-    
     return json.dumps(result)

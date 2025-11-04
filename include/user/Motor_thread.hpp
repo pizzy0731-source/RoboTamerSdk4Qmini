@@ -21,10 +21,10 @@ struct SerialGroup {
 class MotorController {
 public:
     std::vector<SerialGroup> serialGroups = {
-        {"/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT9CC6WH-if03-port0", {0,5}},
-        {"/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT9CC6WH-if01-port0", {1,6}},
-        {"/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT9CC6WH-if00-port0", {2, 3, 4}},
-        {"/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT9CC6WH-if02-port0", {7, 8, 9}}
+        {"/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTA8C0JQ-if03-port0", {0,5}},
+        {"/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTA8C0JQ-if01-port0", {1,6}},
+        {"/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTA8C0JQ-if00-port0", {2, 3, 4}},
+        {"/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTA8C0JQ-if02-port0", {7, 8, 9}}
     };
     MotorController() {
         InitializeSerialPorts();
@@ -80,10 +80,10 @@ public:
 
 public:
     /// Startq（0位偏移）： 左腿roll 内扣，则需增大，右腿内扣则需减小
-    std::array<float, 10> Startq ={0.65,  0.45 , 1.28,   0.86,  0.56,
-                                   0.8, 0.,  0.301131,  0.513495,  0.2};
+    std::array<float, 10> Startq ={-0.2,  0.35 , 2.906,   0.346,  1.3,
+        1.1, 0.1,  -1.297,  0.655,  -0.286};
 
-    //    std::array<float, 10> Startq ={0.,  0. , 0,   0.0,  0.0, 0.0, -0.0,  0.0,  0.0,  0.0};
+    //std::array<float, 10> Startq ={0.,  0. , 0,   0.0,  0.0, 0.0, -0.0,  0.0,  0.0,  0.0};
 
     std::array<MotorData, 10> allMotorData;
     float Speed_Ratio = 6.33;

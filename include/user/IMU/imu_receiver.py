@@ -49,12 +49,12 @@ def parse_opt(known=False):
     return receive_params
 
 
-def read_imu_data(port="/dev/ttyUSB0", baudrate=921600, timeout=1):
+def read_imu_data(port="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0003-if00-port0", baudrate=921600, timeout=1):
     try:
         serial_ = serial.Serial(port=port, baudrate=baudrate, bytesize=EIGHTBITS, parity=PARITY_NONE,
                                 stopbits=STOPBITS_ONE,
                                 timeout=timeout)
-        print("baud rates = " + str(serial_.baudrate))
+        #print("baud rates = " + str(serial_.baudrate))
     except:
         print("error:  unable to open port .")
         exit(1)
@@ -178,7 +178,7 @@ def read_imu_data(port="/dev/ttyUSB0", baudrate=921600, timeout=1):
         # }
         
         if temp1 is True and temp2 is True:
-          print(result)
+          #print(result)
           temp2=False
           temp1=False
           return result
