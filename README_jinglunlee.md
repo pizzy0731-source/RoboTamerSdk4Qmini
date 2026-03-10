@@ -27,6 +27,11 @@ RoboTamerSdk4Qmini/
    ├── README.md
    └── README_jinglunlee.md    # iDuck版本說明
    ```
+### 履帶部分
+* bin/joystick.py 改成 保留原本 JSON 回傳＋新增 ROS2 發佈 topic：原始搖桿資料 的版本
+* bin/serial_joy_to_arduino.py：ROS2→Arduino 節點（Python）——訂閱 /joy、用差速公式把搖桿轉成左右履帶命令，並經序列埠送到 Arduino。
+* 要操作履帶除了運行run_interface，還需另開一終端執行 python3 serial_joy_to_arduino.py
+
 ### Notes
 * 注意serial name可能出現錯誤
 * 建議將馬達(電機)與樹梅派分開供電以維持系統穩定
