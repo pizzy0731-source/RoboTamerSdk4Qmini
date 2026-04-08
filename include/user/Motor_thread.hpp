@@ -79,12 +79,12 @@ public:
     }
 
 public:
-    /// Startq（0位偏移）： 
-    std::array<float, 10> Startq ={0.9,  0.4 , 1.91,   -0.645,  1.3,
-        1.0, 0.1,  -0.31,  1.64,  -1.26};
+    /// Startq（0位偏移）： 整個範圍太低就減，太高就加
+    std::array<float, 10> Startq ={-0.2,  0.2 , 2.9,   0.35,  2.3,
+        1.1, 0.1,  -1.3,  0.65,  -0.2};
 
     // 先編譯這部分，調到個關節零位後登記在上方，之後註解這部分改用上面的
-    //std::array<float, 10> Startq ={0.,  0. , 0,   0.0,  0.0, 0.0, -0.0,  0.0,  0.0,  0.0};
+    //std::array<float, 10> Startq ={0.1,  0.0 , 0.0,   0.0,  0.0, 0.0, -0.0,  0.0,  0.0,  0.0};
 
     std::array<MotorData, 10> allMotorData;
     float Speed_Ratio = 6.33;

@@ -1,0 +1,9 @@
+# 隱藏原廠 README
+README.md
+
+# Build artifacts
+build/
+
+# Python cache
+__pycache__/
+*.pyc

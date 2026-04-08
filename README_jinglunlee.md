@@ -1,9 +1,10 @@
-# IdakaSdk4iduck_v1.0
+# IdakaSdk4iduck_v2.0
 ![C++](https://img.shields.io/badge/Code%20Language-C++-blue.svg) 
 ![ONNX](https://img.shields.io/badge/Framework-ONNX-orange.svg)
-![Version](https://img.shields.io/badge/Version-1.0-blue.svg)  
+![Version](https://img.shields.io/badge/Version-2.0-blue.svg)  
 
-**This is currently Version 1.0. update at 2025/11/05**  
+**This is currently Version 2.0. update at 2026/04/08** 
+**Last Version 1.0. update at 2025/11/05**  
 
 
 **Maintainer**: Jinglun Lee<br>
@@ -13,6 +14,7 @@
 ### Features
 - **qminiSdk修改成可執行版本** — 修復原廠的bug，可運行各種模式，但行走仍不穩定需調校<br>
 - **履帶** — 額外加上履帶控制<br>
+- **SLAM + NAV** — 自主建圖及導航<br>
 
 
 ## Code Structure
@@ -27,10 +29,13 @@ RoboTamerSdk4Qmini/
    ├── README.md
    └── README_jinglunlee.md    # iDuck版本說明
    ```
-### 履帶部分
+
+
+### 額外修增部分
 * bin/joystick.py 改成 保留原本 JSON 回傳＋新增 ROS2 發佈 topic：原始搖桿資料 的版本
-* bin/serial_joy_to_arduino.py：ROS2→Arduino 節點（Python）——訂閱 /joy、用差速公式把搖桿轉成左右履帶命令，並經序列埠送到 Arduino。
-* 要操作履帶除了運行run_interface，還需另開一終端執行 python3 serial_joy_to_arduino.py
+* include/user/imu_interface.py 改成 保留原本 JSON 回傳＋新增 ROS2 發佈 topic：原始 imu 資料 的版本
+* 將所有ROS2相關套件打包在~/ros2_ws_robot，一鍵啟動，更多細節在那邊的README
+
 
 ### Notes
 * 注意serial name可能出現錯誤
@@ -44,22 +49,26 @@ RoboTamerSdk4Qmini/
 
 ### 2. SSH到樹梅派：
 
-#### 可以先將樹梅派接螢幕，確認IP
-#### IP：動態分配，通常為192.168.0.221或192.168.0.219
+#### IP：固定為192.168.0.219
 #### 密碼：Qwerty~12345
 
 
-### 3. 開啟終端，運行可執行檔run_interface
+### 3. 開啟終端，運行腳本開啟usb網卡熱點
+```bash
+sudo bash ~/piap.sh start
+```
+
+### 4. 開啟終端，運行可執行檔run_interface
 ```bash
 cd ~/RoboTamerSdk4Qmini/bin
 ./run_interface 
 ```
 
-### 4. 調零
+### 5. 調零
 
 #### 編輯Motor_thread.hpp，將Startq改為0
 #### 重新編譯一次並運行
-#### 紀錄根據config.yamlaml修改Startq再編譯一次
+#### 紀錄根據config.yaml修改Startq再編譯一次
 
 ```bash
 cd ~/RoboTamerSdk4Qmini
@@ -68,8 +77,7 @@ cmake -DPLATFORM=arm64 ..
 make -j
 ```
 
-
-### 5. 運行可執行檔，按mode開啟遙控器
+### 6. 運行可執行檔，按mode開啟遙控器
 
 #### 按A進入站立模式
 #### 按X進入RL模式(即可控制搖桿進行走路)
@@ -81,6 +89,28 @@ cd ~/RoboTamerSdk4Qmini/bin
 ./run_interface 
 ```
 
+### 7. 運行ros2 node
+
+#### 另外開一個終端運行：
+
+```bash
+ros2 launch robot_bringup bringup.launch.py
+```
+### 8. 在工作站跑ros2大型套件
+
+#### 遠端到工作站終端
+#### 第一個終端（啟動容器，只需跑一次）：
+```bash
+bash ~/ros2_ws/run_ros2.sh
+```
+#### 之後的終端（進入已在跑的容器）：
+```bash
+docker exec -it ros2_humble bash
+```
+#### 進去之後啟動ros2 node：
+```bash
+ros2 launch /ros2_ws/launch/slam_launch.py
+```
 
 
 ## Contributing
