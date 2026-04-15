@@ -49,9 +49,22 @@ RoboTamerSdk4Qmini/
 
 ### 2. SSH到樹梅派：
 
-#### IP：固定為192.168.0.219
+#### IP：固定為192.168.0.219/100.74.132.4
 #### 密碼：Qwerty~12345
+#### 使用者名稱及IP：
+```bash
+idaka@100.74.132.4
+```
 
+#### 若要切換網路到行動WIFI
+```bash
+wifi-switch mifi       # 切到 4G-MIFI-2AAF
+wifi-switch office     # 切到 iDakaServer 1
+wifi-switch status     # 看現在連哪個 + tailscale 狀態
+wifi-switch list       # 列所有已存 WiFi profile
+wifi-switch            # 無參數：顯示用法 + 目前 active
+wifi-switch "其他SSID" # 切到指定 profile（必須已存在）
+```
 
 ### 3. 開啟終端，運行腳本開啟usb網卡熱點
 ```bash
